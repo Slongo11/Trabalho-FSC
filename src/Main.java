@@ -203,10 +203,11 @@ public class Main {
      */
     public static int geraRandom(int[] cartas, int quantidade){
         int valor= 1;
-        int contardor= 0;
+        int contardor =0;
         boolean run = true;
         while (contardor >= 4 || run) {
             valor = geraRandom();
+            contardor= 0;
             for (int i = 0; i < quantidade; i++) {
                 if (cartas[i] == valor) {
                     contardor++;

@@ -11,8 +11,16 @@ totalValorCartasJogador: .word 0 # valor total das cartas na mao
 totalValorCartasDealer: .word 0  # valor total das cartas na mao
 imprimeInfoJogador: .string "\nO jogador revela: "  
 imprimeInfoDealer: .string "\nO dealer revela: "
+recebeu: .string "\nRecebeu: "
 jogoInfo1: .string "\n==============JogoInfo==============="
 jogoInfo2: .string "\n====================================="
+jogoInfo3: .string "\n--------------------------"
+jogoInfo4: .string "\nO dealer não comprou"
+jogoInfo5: .string "\n##################################\nO dealer ganhou o jagador estourou\n##################################\n"
+estouroDealer: .string"\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\nO jogador ganhou o dealer estorou!\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+delerWin: .string "\n##################################\nO dealer ganhou\n##################################"
+jogadorWin: .string "\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\nO jogador ganhou\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+empateTecnico: .string "=================================\nDeu empate\n================================="
 impremeMais: .string " + "
 imprimeIgual: .string " = "
 startNomeJogo: .string "\n============================\nBem-vindo ao jogo Black Jack\n============================ \n"
@@ -192,7 +200,7 @@ jogo:
     la t0,totalValorCartasDealer        # t0 <= &totalValorCartasDealer
     sw a0, 0(t0)                        # guarda na memoria o valor da soma
     
-    #
+#
 #         int opcao = 0;
 #         while (opcao != 2){
 #
@@ -213,15 +221,6 @@ jogo:
 #                         ======================
 #                         """);
 #             opcao = scanner.nextInt();
-#             if (opcao == 1 ){
-#                 cartasJogador[qtdCartasJogador] = geraRandom(cartasJogo,qtdCartasJogador+qtdCartasDealer);
-#                 qtdCartasJogador++;
-#                 cartasUsuario += " + " + cartasJogador[qtdCartasJogador-1];
-#                 valorCartaUsuario =  somaCartas(cartasJogador,qtdCartasJogador);
-#
-#             }
-#
-#         }
     li t0, 0                            # opcao(t0) <= 0
     #while (opcao != 2)
 
@@ -233,7 +232,8 @@ jogo:
     li a7, 4                            # a7 <= 4 (print string)
     la a0, jogoInfo1                    # a0 <= &jogoInfo1
     ecall
-
+    
+    #imprime as cartas do jogador
     la a0, cartasJogador                # a0 <= &cartasJogador
     la a1, totalValorCartasJogador      # a1 <= &totalValorCartasJogador
     la a2, imprimeInfoJogador           # a2 <= &imprimeInfoJogador
@@ -312,9 +312,180 @@ jogo:
 
     fimLoopWhileJogador:
 
+#         // chance para a maquina tirar 21 e empatar
+#         if(valorCartaUsuario <= 21){
+#             boolean run = true;
+#             while (run){
+#                 if (valorCartaMaquina < 17){
+#                     cartasDealer[qtdCartasDealer] = geraRandom(cartasJogo,qtdCartasJogador+qtdCartasDealer);
+#                     qtdCartasDealer++;
+#                     cartasMaquina += " + " + cartasDealer[qtdCartasDealer-1];
+#                     valorCartaMaquina =  somaCartas(cartasDealer, qtdCartasDealer);
+    #// chance para a maquina tirar 21 e empatar
+    #if(valorCartaUsuario <= 21){
+    la t0, totalValorCartasJogador  # t0 <= &totalValorCartasJogador
+    lw t0, 0(t0)                    # t0 <= totalValorCartasJogador
+    li t1, 21                       # t1 <= 21
+    bgt t0, t1 jogadorEstora        # totalValorCartasJogador > 21 acaba
+    loopDealer:
+    
+    #if (valorCartaMaquina < 17)
+    la t0, totalValorCartasDealer   # t0 <= &totalValorCartasJogador
+    lw t0, 0(t0)                    # t0 <= totalValorCartasJogador
+    li t1, 17                       # t1 <= 17
+    bge t0, t1 elseMaquina          # totalValorCartasJogador > 17 acaba
+
+    # Sorteia mais uma carta
+    la a0, cartas           # primeiro argumento para a chamada
+    lw a1, 0(s0)            # quantidade de cartas do jogador
+    lw t5, 0(s1)            # quantidade de cartas do dealer
+    add a1, a1, t5          # segundo argumento para a chamada o valor total de cartas atuais
+    jal geraRandomMax4
+    lw t5, 0(s1)            # quantidade de cartas do dealer
+    addi t5, t5, 1          # quantidade++ das cartas
+    slli t4, t5, 2          # multiplica por 4
+    add t4, s0, t4          # pega o endereco para armazenar
+    sw a0, 0(t4)            # coloca na memoria o valor de retorn0 
+    mv t0, a0               # t0 <= o valor de retorno
+    sw t5, 0(s0)            # substitui o antigo valor da primeira posicao
+
+    #faz a soma das cartas
+    mv a0, s0                           # move &cartasJogador(s0) para o argumento
+    jal somaCartas                      # pula para a soma
+    la t3, totalValorCartasDealer       # t3 <= &totalValorCartasDealer
+    sw a0, 0(t3)                        # guarda na memoria o valor da soma
+#                     System.out.printf("""
+#                                 --------------------------
+#                                 Dealer recebeu: %d
+#                                 Revela: %s = %d
+#                                 --------------------------
+#                                 """, cartasDealer[qtdCartasDealer-1], cartasMaquina, valorCartaMaquina);
+#                 }
+#                 else{
+#                     System.out.printf("""
+#                                 --------------------------
+#                                 O dealer não comprou
+#                                 Revela: %s = %d
+#                                 --------------------------
+#                                 """, cartasMaquina, valorCartaMaquina);
+#                 }
+#                 if (valorCartaMaquina >= 17){
+#                     run = false;
+#                 }
+    #Print info inicio
+    li a7, 4                            # a7 <= 4 (print string)
+    la a0, jogoInfo3                    # a0 <= &jogoInfo3
+    ecall
+    #Print info
+    li a7, 4                            # a7 <= 4 (print string)
+    la a0, recebeu                      # a0 <= &recebu
+    ecall
+    
+    #jogoInfo recebido
+    li a7, 1                           # a7 <= 1 (print int)
+    mv a0, t0                          # a0 <= &imprime Valor de retorno da sorteio
+    ecall
+    
+    #Print todos os numeros
+    la a0, cartasDealer                # a0 <= &cartasDealer
+    la a1, totalValorCartasDealer      # a1 <= &totalValorCartasDealer
+    la a2, imprimeInfoDealer           # a2 <= &imprimeInfoDealer
+    jal printaString
+
+    #Print info fim
+    li a7, 4                            # a7 <= 4 (print string)
+    la a0, jogoInfo3                    # a0 <= &jogoInfo3
+    ecall
 
 
-        
+
+    la t0, totalValorCartasDealer   # t0 <= &totalValorCartasDealer
+    lw t0, 0(t0)                    # t0 <= totalValorCartasDealer
+    li t1, 17                       # t1 <= 17
+
+    bge t0, t1 fimLoopDealer        # totalValorCartasJogador > 17 acaba dando o break
+
+    j loopDealer                    # pula devolta
+    
+    elseMaquina:
+
+    #Print info inicio
+    li a7, 4                              # a7 <= 4 (print string)
+    la a0, jogoInfo3                      # a0 <= &jogoInfo3
+    ecall
+
+    #Print info
+    li a7, 4                              # a7 <= 4 (print string)
+    la a0, jogoInfo4                      # a0 <= &jogoInfo4
+    ecall
+    
+    
+    #Print todos os numeros
+    la a0, cartasDealer                   # a0 <= &cartasDealer
+    la a1, totalValorCartasDealer         # a1 <= &totalValorCartasDealer
+    la a2, imprimeInfoDealer              # a2 <= &imprimeInfoDealer
+    jal printaString
+
+    #Print info fim
+    li a7, 4                              # a7 <= 4 (print string)
+    la a0, jogoInfo3                      # a0 <= &jogoInfo3
+    ecall
+    fimLoopDealer:
+    
+    #
+#             }
+#             if(valorCartaMaquina > 21){
+#                 System.out.println("""
+#                                     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+#                                     O jogador ganhou o dealer estorou!
+#                                     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+#                                     """);
+#             }
+
+    li t0, totalValorCartasDealer         # t0 <= &totalValorCartasDealer 
+    lw t0, 0(t0)                          # t0 <= totalValorCartasDealer
+    li t1, totalValorCartasJogador        # t1 <= &totalValorCartasJogador
+    lw t1, 0(t1)                          # t1 <= totalValorCartasJoador
+    li t2, 21                             # t2 <= 21
+    ble t0, t2 elseAvalia                 #totalValorCartasDealer(t0) <= 21
+
+    #Print info
+    li a7, 4                                # a7 <= 4 (print string)
+    la a0, estouroDealer                      # a0 <= &estourDealer
+    ecall
+    j endGame
+#             else{
+#                 if (valorCartaMaquina > valorCartaUsuario){
+#                     System.out.println("""
+#                                     ##################################
+#                                     O dealer ganhou
+#                                     ##################################
+#                                     """);
+#                 }
+#                 if (valorCartaMaquina < valorCartaUsuario){
+#                     System.out.println("""
+#                                     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+#                                     O jogador ganhou
+#                                     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+#                                     """);
+#                 }
+#                 if(valorCartaMaquina == valorCartaUsuario){
+#                     System.out.println("""
+#                                     =================================
+#                                     Deu empate
+#                                     =================================
+#                                     """);
+#                 }
+#             }
+
+    elseAvalia:
+    bgt t0, t1 winDealer        # totalValorCartasDealer > totalValorCartasJoador
+    blt t0, t1 winJogador       # totalValorCartasDealer < totalValorCartasJoador
+    beq t0, t1 empate           # totalValorCartasDealer == totalValorCartasJoador
+
+
+
+    endGame:    
     
 
     lw s2, 12(sp)           # guarda o valor s2
@@ -323,6 +494,70 @@ jogo:
     lw ra, 0(sp)            # pega o valor de retorno
     addi sp, sp, 16         # fecha espaco na stack
     jr ra                   # pula para o loop de menu
+
+###################################################################################
+#         }
+#         else{
+#             System.out.printf("""
+#                             Dealer tinha: %s = %d
+#                             """, cartasMaquina, valorCartaMaquina);
+#             System.out.println("""
+#                                    ##################################
+#                                    O dealer ganhou o jagador estourou
+#                                    ##################################
+#                                    """);
+#         }
+#     }
+    jogadorEstora:
+
+    #Print info
+    li a7, 4                            # a7 <= 4 (print string)
+    la a0, jogoInfo4                      # a0 <= &jogoInfo4
+    ecall
+    
+    
+    #Print todos os numeros
+    la a0, cartasDealer                # a0 <= &cartasDealer
+    la a1, totalValorCartasDealer      # a1 <= &totalValorCartasDealer
+    la a2, imprimeInfoDealer           # a2 <= &imprimeInfoDealer
+    jal printaString
+
+    #Print info fim de jogo
+    li a7, 4                            # a7 <= 4 (print string)
+    la a0, jogoInfo5                    # a0 <= &jogoInfo5
+    ecall
+
+    j endGame
+###################################################################################
+    winDealer:
+
+    #Print info fim de jogo
+    li a7, 4                            # a7 <= 4 (print string)
+    la a0, delerWin                     # a0 <= &delerWin
+    ecall
+
+    j endGame
+
+###################################################################################
+    winJogador:
+
+    #Print info fim de jogo
+    li a7, 4                            # a7 <= 4 (print string)
+    la a0, jogadorWin                   # a0 <= &jogadorWin
+    ecall
+
+    j endGame
+
+###################################################################################
+    empate:
+
+    #Print info fim de jogo
+    li a7, 4                            # a7 <= 4 (print string)
+    la a0, empateTecnico                # a0 <= &empateTecnico
+    ecall
+
+    j endGame
+
 ###################################################################################
 #recebe a0  & das cartas, a1 & total das cartas, a2 & da mensagem
 printaString:
@@ -422,81 +657,7 @@ concatenaString:
 
     jr ra                                   # volta para seguir a logica
 
-    
 
-
-#         // chance para a maquina tirar 21 e empatar
-#         if(valorCartaUsuario <= 21){
-#             boolean run = true;
-#             while (run){
-#                 if (valorCartaMaquina < 17){
-#                     cartasDealer[qtdCartasDealer] = geraRandom(cartasJogo,qtdCartasJogador+qtdCartasDealer);
-#                     qtdCartasDealer++;
-#                     cartasMaquina += " + " + cartasDealer[qtdCartasDealer-1];
-#                     valorCartaMaquina =  somaCartas(cartasDealer, qtdCartasDealer);
-#
-#                     System.out.printf("""
-#                                 --------------------------
-#                                 Dealer recebeu: %d
-#                                 Revela: %s = %d
-#                                 --------------------------
-#                                 """, cartasDealer[qtdCartasDealer-1], cartasMaquina, valorCartaMaquina);
-#                 }
-#                 else{
-#                     System.out.printf("""
-#                                 --------------------------
-#                                 O dealer não comprou
-#                                 Revela: %s = %d
-#                                 --------------------------
-#                                 """, cartasMaquina, valorCartaMaquina);
-#                 }
-#                 if (valorCartaMaquina >= 17){
-#                     run = false;
-#                 }
-#
-#             }
-#             if(valorCartaMaquina > 21){
-#                 System.out.println("""
-#                                     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-#                                     O jogador ganhou o dealer estorou!
-#                                     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-#                                     """);
-#             }
-#             else{
-#                 if (valorCartaMaquina > valorCartaUsuario){
-#                     System.out.println("""
-#                                     ##################################
-#                                     O dealer ganhou
-#                                     ##################################
-#                                     """);
-#                 }
-#                 if (valorCartaMaquina < valorCartaUsuario){
-#                     System.out.println("""
-#                                     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-#                                     O jogador ganhou
-#                                     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-#                                     """);
-#                 }
-#                 if(valorCartaMaquina == valorCartaUsuario){
-#                     System.out.println("""
-#                                     =================================
-#                                     Deu empate
-#                                     =================================
-#                                     """);
-#                 }
-#             }
-#         }
-#         else{
-#             System.out.printf("""
-#                             Dealer tinha: %s = %d
-#                             """, cartasMaquina, valorCartaMaquina);
-#             System.out.println("""
-#                                    ##################################
-#                                    O dealer ganhou o jagador estourou
-#                                    ##################################
-#                                    """);
-#         }
-#     }
 
 
     

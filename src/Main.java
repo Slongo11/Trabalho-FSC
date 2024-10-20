@@ -183,7 +183,7 @@ public class Main {
         int soma = 0;
         for (int i = 0; i < quantidade; i++) {
             // validando caso for as caso receba ajudar 1 ou 11
-            if (cartas[i] == 1 && i < 2 && soma < 11 || cartas[i] == 1 && soma < 11){
+            if (cartas[i] == 1 && soma < 11){
                 soma += 11;
             }else if(cartas[i] == 11 ||  cartas[i] == 12 || cartas[i] == 13 ){
                 soma += 10;

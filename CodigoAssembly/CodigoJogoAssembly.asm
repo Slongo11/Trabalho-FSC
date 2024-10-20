@@ -4,18 +4,21 @@
 # 
 ############################
 .data 
-cartasJogador: .word 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0     # Posicao zero vai ser a quantidade de cartas na mao e de resto as cartas ou seja 2
-cartasDealer:  .word 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0     # Posicao zero vai ser a quantidade de cartas na mao e de resto as cartas ou seja 2
-cartas: .word 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+cartasJogador: .word 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0     # Posicao zero vai ser a quantidade de cartas na mao e de resto as cartas ou seja 2 com 10 para as cartas
+cartasDealer:  .word 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0     # Posicao zero vai ser a quantidade de cartas na mao e de resto as cartas ou seja 2 com 10 para as cartas
+cartas: .word 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  # 20 posicoes para as cartas no jogo
 totalValorCartasJogador: .word 0 # valor total das cartas na mao 
 totalValorCartasDealer: .word 0  # valor total das cartas na mao
-imprimeInfoJogador: .string
-imprimeInfoDealer: .string
+imprimeInfoJogador: .string "\nCartas jogador: "  
+imprimeInfoDealer: .string "\nCartas dealer: "
+impremeMais: .string " + "
+imprimeIgual: .string " = "
 startNomeJogo: .string "\n============================\nBem-vindo ao jogo Black Jack\n============================ \n"
 menuInico: .string "\n ============================\n| -----------menu------------ |\n| [1] para iniciar o programa |\n| [2] para parar o programa   |\n|============================ | \n"
 opcaoInvalida: .string "\nNão existe essa opção\n"
 menuNext: .string "\n======================\nDeseja jogar novamente?\n[1] Sim\n[2] Não\n======================\n"
 mensagemFim: .string "\nVolte sempre\n"
+buffer: .string
 
 ############################
 
@@ -76,7 +79,7 @@ jogo:
 
     #Menu inicial
     li a7, 4                # a7 <= 4 (print string)
-    la a0, menuInico   # a0 <= &meu_texto
+    la a0, menuInico        # a0 <= &meu_texto
     ecall 
 
     #Comparacoes para o loop
@@ -183,6 +186,20 @@ jogo:
     jal somaCartas                      # pula para a soma
     la t0,totalValorCartasDealer        # t0 <= &totalValorCartasDealer
     sw a0, 0(t0)                        # guarda na memoria o valor da soma
+    
+    la a0, cartasJogador                # a0 <= &cartasJogador
+    la a1, totalValorCartasJogador      # a1 <= &totalValorCartasJogador
+    la a2, imprimeInfoJogador           # a2 <= &imprimeInfoJogador
+    jal printaString
+
+    la a0, cartasJogador                # a0 <= &cartasJogador
+    la a1, imprimeInfoJogador           # a1 <= &imprimeInfoJogador
+    jal concatenaString                 # pula para concatenar
+    li a7, 4                        # a7 <= 4 (print string)
+    la a0, buffer                   # a0 <= &meu_texto
+    ecall
+
+    
 
         
     # la a0,cartas            # primeiro argumento para a chada
@@ -195,6 +212,104 @@ jogo:
     lw ra, 0(sp)            # pega o valor de retorno
     addi sp, sp, 16         # fecha espaco na stack
     jr ra                   # pula para o loop de menu
+
+#recebe a0  & das cartas, a1 & total das cartas, a2 & da mensagem
+printaString:
+    mv t0, a0           # t0<= &de a0
+    lw t1, 0(a0)        # t1 <= quantidade de cartas do endereco(a0) posicao 0
+
+    #printa mensagem
+    li a7, 4                        # a7 <= 4 (print string)
+    mv a0, a2                       # a0 <= &meu_texto
+    ecall
+
+    li t2, 1            # int i = 1 logo que as cartas estão na posiçao 1 em diante
+    #for (int i = 1; i <= quantidade; i++)
+    loopForPrintaString:
+    bge t2, t1, fimLoopForPrintaString   # Caso i(t2) >= 2(t1) acaba
+
+    slli t3, t2, 2                          # t3 <= i(t2) mutiplica por 4
+    add t3, t0, t3                          # t3 <= &cartas(t0)[i(t3)]
+    lw t4, 0(t3)                            # t4 <= o valor carta[i](t3)
+
+    #print o numero da carta
+    li a7, 1                        # a7 <= 1 (print int)
+    mv a0, t4                       # a0 <= interio(t4)
+    ecall
+
+    #print +
+    li a7, 4                        # a7 <= 4 (print string)
+    la a0, impremeMais              # a0 <= &meu_texto
+    ecall
+
+   
+    addi t2, t2, 1                          # i(t2)++;
+    j loopForPrintaString                   # pula para o loop novamente
+    fimLoopForPrintaString:
+    
+    slli t3, t2, 2                          # t3 <= i(t2) mutiplica por 4
+    add t3, t0, t3                          # t3 <= &cartas(t0)[i(t3)]
+    lw t4, 0(t3)                            # t4 <= o valor carta[i](t3)
+    # printa o ultimo numero
+    li a7, 1                        # a7 <= 1 (print int)
+    mv a0, t4                       # a0 <= interio(t4)
+    ecall
+
+    #printa  =
+    li a7, 4                        # a7 <= 4 (print string)
+    la a0, imprimeIgual             # a0 <= &meu_texto
+    ecall
+
+    # prita a soma
+    lw t1, 0(a1)                    # t1 <= valorTotal
+    li a7, 1                        # a7 <= 1 (print int)
+    mv a0, t1                       # a0 <= valorTotal(t1)
+    ecall
+
+    jr ra                                   # volta para seguir a logica
+
+#a0 recebe as cartas a1 recebe a primeira menasgem
+concatenaString:
+
+    li, t2,0            # int i = 0
+    
+    loopCopy:
+
+    add t3, a1, t2
+    lb t3,0(t3)
+    beq x0,t3, fimCopy
+    la t4,buffer
+    add t4, t4, t2
+    sb t3, 0(t4)
+
+    addi t2, t2, 1
+    j loopCopy
+    fimCopy:
+
+    lw t1, 0(a0)        # t1 <= quantidade de cartas do endereco(a0) posicao 0
+
+    li t2, 1            # int i = 1 logo que as cartas estão na posiçao 1 em diante
+    #for (int i = 1; i <= quantidade; i++)
+    loopForContatenaString:
+    bgt t2, t1, fimLoopForContatenaString   # Caso i(t2) > 2(t1) acaba
+    
+    slli t3, t2, 2                          # t3 <= i(t2) mutiplica por 4
+    la t5, buffer                           # t5 <= &buffer
+
+
+    add t5, t5, t3                          # guarda info na posicao 
+    add t3, a0, t3                          # t3 <= &cartas(a0)[i(t3)]
+    lb t4, 0(t3)                            # t4 <= o valor carta[i](t3)
+    sb t4, 0(t5)                            # valor carta(t4) guarda em 0(5)
+
+   
+    addi t2, t2, 1                          # i(t2)++;
+    addi t4, t4, 1
+    j loopForContatenaString                # pula para o loop novamente
+    fimLoopForContatenaString:
+
+    jr ra                                   # volta para seguir a logica
+
     
 
 #

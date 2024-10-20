@@ -74,7 +74,7 @@ public class Main {
                             ==============JogoInfo===============
                             O jogador revela: %s = %d
                             O dealer revela: %d
-                            ====================================
+                            =====================================
                             """,cartasUsuario, valorCartaUsuario ,cartasDealer[0]);
             // fechou 21 ou estrapolou o limite
             if(valorCartaUsuario >= 21)

@@ -336,21 +336,25 @@ jogo:
     bge t0, t1 elseMaquina          # totalValorCartasJogador > 17 acaba
 
     # Sorteia mais uma carta
-    la a0, cartas           # primeiro argumento para a chamada
+    la a0,cartas            # primeiro argumento para a chamada
     lw a1, 0(s0)            # quantidade de cartas do jogador
     lw t5, 0(s1)            # quantidade de cartas do dealer
     add a1, a1, t5          # segundo argumento para a chamada o valor total de cartas atuais
+    addi sp, sp -4          # abre espaco na stack antes de pular
+    sw t0, 16(sp)           # guarda na stack o valor do t0
     jal geraRandomMax4
-    lw t5, 0(s1)            # quantidade de cartas do dealer
+    lw t0, 16(sp)           # volta o valor de t0
+    addi sp, sp 4           # retorna pilha ao normal
+    lw t5, 0(s1)            # quantidade de cartas do delaler
     addi t5, t5, 1          # quantidade++ das cartas
     slli t4, t5, 2          # multiplica por 4
-    add t4, s0, t4          # pega o endereco para armazenar
-    sw a0, 0(t4)            # coloca na memoria o valor de retorn0 
-    mv t0, a0               # t0 <= o valor de retorno
-    sw t5, 0(s0)            # substitui o antigo valor da primeira posicao
+    add t4, s1, t4          # pega o endereco para armazenar
+    sw a0, 0(t4)            # coloca na memoria o valor de retorni 
+    
+    sw t5, 0(s1)            # substitui o antigo valor da primeira posicao
 
     #faz a soma das cartas
-    mv a0, s0                           # move &cartasJogador(s0) para o argumento
+    mv a0, s1                           # move &deler(s1) para o argumento
     jal somaCartas                      # pula para a soma
     la t3, totalValorCartasDealer       # t3 <= &totalValorCartasDealer
     sw a0, 0(t3)                        # guarda na memoria o valor da soma
@@ -442,9 +446,9 @@ jogo:
 #                                     """);
 #             }
 
-    li t0, totalValorCartasDealer         # t0 <= &totalValorCartasDealer 
+    la t0, totalValorCartasDealer         # t0 <= &totalValorCartasDealer 
     lw t0, 0(t0)                          # t0 <= totalValorCartasDealer
-    li t1, totalValorCartasJogador        # t1 <= &totalValorCartasJogador
+    la t1, totalValorCartasJogador        # t1 <= &totalValorCartasJogador
     lw t1, 0(t1)                          # t1 <= totalValorCartasJoador
     li t2, 21                             # t2 <= 21
     ble t0, t2 elseAvalia                 #totalValorCartasDealer(t0) <= 21

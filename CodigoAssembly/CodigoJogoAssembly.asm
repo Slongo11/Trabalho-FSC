@@ -20,7 +20,7 @@ jogoInfo5: .string "\n##################################\nO dealer ganhou o jaga
 estouroDealer: .string"\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\nO jogador ganhou o dealer estorou!\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
 delerWin: .string "\n##################################\nO dealer ganhou\n##################################"
 jogadorWin: .string "\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\nO jogador ganhou\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-empateTecnico: .string "=================================\nDeu empate\n================================="
+empateTecnico: .string "\n=================================\nDeu empate\n================================="
 impremeMais: .string " + "
 imprimeIgual: .string " = "
 startNomeJogo: .string "\n============================\nBem-vindo ao jogo Black Jack\n============================ \n"
@@ -340,11 +340,11 @@ jogo:
     lw a1, 0(s0)            # quantidade de cartas do jogador
     lw t5, 0(s1)            # quantidade de cartas do dealer
     add a1, a1, t5          # segundo argumento para a chamada o valor total de cartas atuais
-    addi sp, sp -4          # abre espaco na stack antes de pular
-    sw t0, 16(sp)           # guarda na stack o valor do t0
+
     jal geraRandomMax4
-    lw t0, 16(sp)           # volta o valor de t0
-    addi sp, sp 4           # retorna pilha ao normal
+    
+    mv t0, a0               # guarda o valor as ser printado gerado aleatoriamente
+
     lw t5, 0(s1)            # quantidade de cartas do delaler
     addi t5, t5, 1          # quantidade++ das cartas
     slli t4, t5, 2          # multiplica por 4
@@ -354,8 +354,12 @@ jogo:
     sw t5, 0(s1)            # substitui o antigo valor da primeira posicao
 
     #faz a soma das cartas
-    mv a0, s1                           # move &deler(s1) para o argumento
+    mv a0, s1
+    addi sp, sp -4          # abre espaco na stack antes de pular
+    sw t0, 16(sp)           # guarda na stack o valor do t0                           # move &deler(s1) para o argumento
     jal somaCartas                      # pula para a soma
+    lw t0, 16(sp)           # volta o valor de t0
+    addi sp, sp 4           # retorna pilha ao normal
     la t3, totalValorCartasDealer       # t3 <= &totalValorCartasDealer
     sw a0, 0(t3)                        # guarda na memoria o valor da soma
 #                     System.out.printf("""

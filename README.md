@@ -20,7 +20,7 @@ Valete) têm valor 10. Por fim, o Ás pode valer 1 ou 11, sempre favorecendo o j
 <h2>Como é a lógica?</h2>
 <p>
 Recebe duas cartas cada um, o dealer revela uma para o jogador,
-o jogador pode pedir <strong>hit</strong> para comprar mais uma e assim chegar o mias proximo o possivel de 21, 
+o jogador pode pedir <strong>Hit</strong> para comprar mais uma e assim chegar o mais proximo o possivel de 21, 
 caso estoure ou se completa 21 o jogo para automaticamente, mas caso não aconteça o jogador pode pedir
 <strong>Stand</strong> para parar e deixar o dealer jogar na sua vez.
 </p>

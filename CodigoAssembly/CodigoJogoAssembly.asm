@@ -11,7 +11,7 @@ totalValorCartasJogador: .word 0 # valor total das cartas na mao
 totalValorCartasDealer: .word 0  # valor total das cartas na mao
 imprimeInfoJogador: .string "\nO jogador revela: "  
 imprimeInfoDealer: .string "\nO dealer revela: "
-recebeu: .string "\nRecebeu: "
+recebeu: .string "\nO dealer recebeu: "
 jogoInfo1: .string "\n==============JogoInfo==============="
 jogoInfo2: .string "\n====================================="
 jogoInfo3: .string "\n--------------------------"
@@ -37,7 +37,7 @@ buffer: .string
 .text # Codigo
 .globl main
 
-
+###################################################################################
 main:
 # import java.util.Random;
 # import java.util.Scanner;
@@ -82,6 +82,7 @@ main:
 #         end();
 #
 #     }
+###################################################################################
 jogo:
     #Bem vindo
     li a7, 4                # a7 <= 4 (print string)
@@ -104,8 +105,8 @@ jogo:
     switchCase:
     #case 1
     li t1, 1                        # t1 <= 1     
-    bne t0, t1 default              # case 1: comeca jogo
-    jal start
+    bne t0, t1 default              # t0 ≠ 1
+    jal start                       # case 1: comeca jogo
 
     saidaCase:
 
@@ -120,7 +121,7 @@ jogo:
     mv t0, a0 		# t0 <= de a0
 
     j loopMenu
-
+###################################################################################
 #     /**
 #      * comeca o jogo para o usuário toda a lógica
 #      */
@@ -139,6 +140,7 @@ jogo:
 #             cartasJogo[i+2]= cartasJogador[i];
 #             cartasJogo[i]= cartasDealer[i];
 #         }
+###################################################################################
     start:
     addi sp, sp, -16        # abre espaco na stack
     sw ra, 0(sp)            # guarda o valor de retorno
@@ -152,7 +154,7 @@ jogo:
     li t0, 2                    # t0 <= 2
     sw t0, 0(s0)                # guarda o valor 2 na cartasJogador[0]
     sw t0, 0(s1)                # guarda o valor 2 na cartasDealer[0]
-    ##########################################
+###################################################################################
     
     # Realiza a primeira distribuicao de cartas
     li t0, 0                #int i = 0 (t0)
@@ -182,12 +184,14 @@ jogo:
     addi t0, t0, 1              #i(t0)++
     j loopForStart
     fimLoopForStart:
+###################################################################################
 #         // cada carta de 1-13
 #         String cartasUsuario = cartasJogador[0] + " + " + cartasJogador[1];
 #         String cartasMaquina = cartasDealer[0] + " + " + cartasDealer[1];
 #         // faz a soma inicial
 #         int valorCartaUsuario = somaCartas(cartasJogador,qtdCartasJogador);
 #         int valorCartaMaquina = somaCartas(cartasDealer,qtdCartasDealer);
+###################################################################################
     
     mv a0, s0                           # move &cartasJogador(s0) para o argumento
     jal somaCartas                      # pula para a soma
@@ -199,7 +203,7 @@ jogo:
     jal somaCartas                      # pula para a soma
     la t0,totalValorCartasDealer        # t0 <= &totalValorCartasDealer
     sw a0, 0(t0)                        # guarda na memoria o valor da soma
-    
+###################################################################################
 #
 #         int opcao = 0;
 #         while (opcao != 2){
@@ -221,6 +225,7 @@ jogo:
 #                         ======================
 #                         """);
 #             opcao = scanner.nextInt();
+###################################################################################
     li t0, 0                            # opcao(t0) <= 0
     #while (opcao != 2)
 
@@ -265,14 +270,14 @@ jogo:
 
     #Escolha jogador
     li a7, 4                           # a7 <= 4 (print string)
-    la a0, escolha                     # a0 <= &jogoInfo2
+    la a0, escolha                     # a0 <= &escolha
     ecall
     
     #Le entrada int
     li a7, 5                           # a7 <= 5 (read int)
     ecall
     mv t0, a0                          # t0 <= a0 ou seja o valor que o usuario informa
-
+###################################################################################
 #        if (opcao == 1 ){
 #            cartasJogador[qtdCartasJogador] = geraRandom(cartasJogo,qtdCartasJogador+qtdCartasDealer);
 #            qtdCartasJogador++;
@@ -280,6 +285,7 @@ jogo:
 #            valorCartaUsuario =  somaCartas(cartasJogador,qtdCartasJogador);
 #
 #         }
+###################################################################################
     li t3, 1                           # t3 <= 1
     bne t3, t0 caso2                   # t3 != 1
     # Sorteia mais uma carta
@@ -307,11 +313,13 @@ jogo:
     sw a0, 0(t3)                        # guarda na memoria o valor da soma
 
     caso2:
-
+    li t6, 2                            # t6 <= 2
+    bne t0, t6, invalidaEscolha         # se valorInformado(t0) != 2 pula 
+    
     j loopWhileJogador
 
     fimLoopWhileJogador:
-
+###################################################################################
 #         // chance para a maquina tirar 21 e empatar
 #         if(valorCartaUsuario <= 21){
 #             boolean run = true;
@@ -321,6 +329,7 @@ jogo:
 #                     qtdCartasDealer++;
 #                     cartasMaquina += " + " + cartasDealer[qtdCartasDealer-1];
 #                     valorCartaMaquina =  somaCartas(cartasDealer, qtdCartasDealer);
+###################################################################################
     #// chance para a maquina tirar 21 e empatar
     #if(valorCartaUsuario <= 21){
     la t0, totalValorCartasJogador  # t0 <= &totalValorCartasJogador
@@ -356,12 +365,13 @@ jogo:
     #faz a soma das cartas
     mv a0, s1
     addi sp, sp -4          # abre espaco na stack antes de pular
-    sw t0, 16(sp)           # guarda na stack o valor do t0                           # move &deler(s1) para o argumento
+    sw t0, 16(sp)           # guarda na stack o valor do t0
     jal somaCartas                      # pula para a soma
     lw t0, 16(sp)           # volta o valor de t0
     addi sp, sp 4           # retorna pilha ao normal
     la t3, totalValorCartasDealer       # t3 <= &totalValorCartasDealer
     sw a0, 0(t3)                        # guarda na memoria o valor da soma
+###################################################################################
 #                     System.out.printf("""
 #                                 --------------------------
 #                                 Dealer recebeu: %d
@@ -380,6 +390,7 @@ jogo:
 #                 if (valorCartaMaquina >= 17){
 #                     run = false;
 #                 }
+###################################################################################
     #Print info inicio
     li a7, 4                            # a7 <= 4 (print string)
     la a0, jogoInfo3                    # a0 <= &jogoInfo3
@@ -440,7 +451,7 @@ jogo:
     ecall
     fimLoopDealer:
     
-    #
+###################################################################################
 #             }
 #             if(valorCartaMaquina > 21){
 #                 System.out.println("""
@@ -449,6 +460,7 @@ jogo:
 #                                     $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 #                                     """);
 #             }
+###################################################################################
 
     la t0, totalValorCartasDealer         # t0 <= &totalValorCartasDealer 
     lw t0, 0(t0)                          # t0 <= totalValorCartasDealer
@@ -462,6 +474,7 @@ jogo:
     la a0, estouroDealer                      # a0 <= &estourDealer
     ecall
     j endGame
+###################################################################################
 #             else{
 #                 if (valorCartaMaquina > valorCartaUsuario){
 #                     System.out.println("""
@@ -485,6 +498,7 @@ jogo:
 #                                     """);
 #                 }
 #             }
+###################################################################################
 
     elseAvalia:
     bgt t0, t1 winDealer        # totalValorCartasDealer > totalValorCartasJoador
@@ -516,6 +530,7 @@ jogo:
 #                                    """);
 #         }
 #     }
+###################################################################################
     jogadorEstora:
 
     #Print info
@@ -622,54 +637,7 @@ printaString:
 
     jr ra                                   # volta para seguir a logica
 
-#a0 recebe as cartas a1 recebe a primeira menasgem
-# talvez
-concatenaString:
-
-    li, t2,0            # int i = 0
-    
-    loopCopy:
-
-    add t3, a1, t2
-    lb t3,0(t3)
-    beq x0,t3, fimCopy
-    la t4,buffer
-    add t4, t4, t2
-    sb t3, 0(t4)
-
-    addi t2, t2, 1
-    j loopCopy
-    fimCopy:
-
-    lw t1, 0(a0)        # t1 <= quantidade de cartas do endereco(a0) posicao 0
-
-    li t2, 1            # int i = 1 logo que as cartas estão na posiçao 1 em diante
-    #for (int i = 1; i <= quantidade; i++)
-    loopForContatenaString:
-    bgt t2, t1, fimLoopForContatenaString   # Caso i(t2) > 2(t1) acaba
-    
-    slli t3, t2, 2                          # t3 <= i(t2) mutiplica por 4
-    la t5, buffer                           # t5 <= &buffer
-
-
-    add t5, t5, t3                          # guarda info na posicao 
-    add t3, a0, t3                          # t3 <= &cartas(a0)[i(t3)]
-    lb t4, 0(t3)                            # t4 <= o valor carta[i](t3)
-    sb t4, 0(t5)                            # valor carta(t4) guarda em 0(5)
-
-   
-    addi t2, t2, 1                          # i(t2)++;
-    addi t4, t4, 1
-    j loopForContatenaString                # pula para o loop novamente
-    fimLoopForContatenaString:
-
-    jr ra                                   # volta para seguir a logica
-
-
-
-
-    
-
+###################################################################################
 #     public static void end(){
 #         System.out.println("Volte sempre");
 #     }
@@ -691,7 +659,7 @@ fim:
     li a7, 93               # a7 <= 93 (exit)
     xor a0, a0, a0          # a0 <= 0
     ecall                   # exits
-
+###################################################################################
 #     public static int somaCartas(int[] cartas, int quantidade){
 #         int soma = 0;
 #         for (int i = 0; i < quantidade; i++) {
@@ -781,6 +749,7 @@ somaCartas:
 #         cartas[quantidade]=valor;
 #         return valor;
 #     }
+###################################################################################
 # a0 o argumento das cartas do jogo e a1 a quantidade
 geraRandomMax4:
     addi sp, sp, -16                     # abrindo espaco no stack pointer
@@ -833,7 +802,7 @@ geraRandomMax4:
     
     jr ra                               # pula para a as proximas instrucoes
 
-
+###################################################################################
 #     /**
 #      * Gera um numero entre 1 e 13
 #      * @return numero aleatorio 1-13
@@ -842,6 +811,7 @@ geraRandomMax4:
 #         Random random = new Random();
 #         return random.nextInt(12)+1;
 #     }
+###################################################################################
 #Gera um numero entre 1 e 13
 geraRandom:
     li a7, 42
@@ -850,4 +820,10 @@ geraRandom:
     addi a0, a0, 1
     jr ra
 
-############################
+###################################################################################
+invalidaEscolha:
+    li a7, 4                            # a7 <= 4 (print string)
+        la a0, opcaoInvalida            # a0 <= &meu_texto que é a opcao invaloda
+        ecall
+    j loopWhileJogador                  # volta para continuar a logica      
+###################################################################################
